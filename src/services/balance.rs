@@ -79,23 +79,25 @@ mod tests {
     }
 
     #[test]
-    fn deposit_rejects_negative_balance() {
+    fn deposit_rejects_negative_amount() {
         let repo: SharedBalanceRepository = Arc::new(FakeBalanceRepository::new(100));
         let service = BalanceService::new(repo);
 
         let balance_result = service.deposit(-10);
 
-        assert!(matches!(balance_result, Err(AppError::InvalidAmount)));
+        assert_eq!(balance_result, Err(AppError::InvalidAmount));
+        assert_eq!(service.get_balance(), 100, "repository should not be changed");
     }
 
     #[test]
-    fn deposit_rejects_zero_balance() {
+    fn deposit_rejects_zero_amount() {
         let repo: SharedBalanceRepository = Arc::new(FakeBalanceRepository::new(100));
         let service = BalanceService::new(repo);
 
         let balance_result = service.deposit(0);
 
-        assert!(matches!(balance_result, Err(AppError::InvalidAmount)));
+        assert_eq!(balance_result, Err(AppError::InvalidAmount));
+        assert_eq!(service.get_balance(), 100, "repository should not be changed");
     }
 
     #[test]
@@ -105,6 +107,18 @@ mod tests {
 
         let balance_result = service.deposit(1);
 
-        assert!(matches!(balance_result, Err(AppError::BalanceOverflow)));
+        assert_eq!(balance_result, Err(AppError::BalanceOverflow));
+    }
+
+    #[test]
+    fn deposit_updates_balance_for_following_reads() {
+        let repo: SharedBalanceRepository = Arc::new(FakeBalanceRepository::new(100));
+        let service = BalanceService::new(repo);
+
+        let balance_result = service.deposit(50);
+
+        assert_eq!(balance_result.unwrap(), 150);
+        assert_eq!(service.get_balance(), 150, "repository should be updated");
+
     }
 }
