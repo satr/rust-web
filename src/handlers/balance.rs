@@ -43,6 +43,8 @@ mod tests {
         }, 100).await;
 
         assert_eq!(response.status(), StatusCode::OK);
+        let body_json = get_body_json_from(response).await;
+        assert_eq!(body_json["balance"], 100);
     }
 
     #[tokio::test]
@@ -101,6 +103,30 @@ mod tests {
         assert_eq!(body_json["error"], "Balance overflow", "Invalid or missing error message");
     }
 
+    #[tokio::test]
+    async fn deposit_rejects_missing_amount_field() {
+        let response = make_app_request(|builder| {
+            builder
+                .uri("/deposit")
+                .method(Method::POST)
+                .body(Body::from(r#"{}"#))
+        }, 100).await;
+
+        assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+    }
+
+    #[tokio::test]
+    async fn deposit_rejects_invalid_json_type() {
+        let response = make_app_request(|builder| {
+            builder
+                .uri("/deposit")
+                .method(Method::POST)
+                .body(Body::from(r#"{"amount":"abc"}"#))
+        }, 100).await;
+
+        assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+    }
+    
     async fn get_body_json_from(response: Response) -> Value {
         let body_bytes = response.into_body().collect().await.unwrap().to_bytes();
         let body_json: Value = serde_json::from_slice(&body_bytes).unwrap();
