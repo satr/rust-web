@@ -34,18 +34,21 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_balance_repository() {
-        let repo = InMemoryBalanceRepository::new(100);
-        assert_eq!(repo.get(), 100);
-        repo.set(150);
-        assert_eq!(repo.get(), 150);
+    fn init_balance() {
+        let repo1 = InMemoryBalanceRepository::new(100);
+        let repo2 = InMemoryBalanceRepository::new(200);
+        assert_eq!(repo1.get(), 100);
+        assert_eq!(repo2.get(), 200);
     }
-    
+
     #[test]
-    fn test_inmemory_balance_repository() {
-        let repo = InMemoryBalanceRepository::new(100);
-        assert_eq!(repo.get(), 100);
-        repo.set(150);
-        assert_eq!(repo.get(), 150);
+    fn set_balance() {
+        let repo1 = InMemoryBalanceRepository::new(100);
+        let repo2 = InMemoryBalanceRepository::new(200);
+
+        repo1.set(150);
+
+        assert_eq!(repo1.get(), 150);
+        assert_eq!(repo2.get(), 200);
     }
 }
